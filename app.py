@@ -421,7 +421,7 @@ if st.session_state["current_page"] == "Overview":
 # PAGE 2: PREDICTION
 # -------------------------------------------------------------
 elif st.session_state["current_page"] == "Prediction":
-    p_head_col1, p_head_col2 = st.columns([2.5, 1.9])
+    p_head_col1, p_head_col2 = st.columns([3.4, 1.0])
 
     with p_head_col1:
         st.markdown(clean_html("""
@@ -434,53 +434,13 @@ elif st.session_state["current_page"] == "Prediction":
         """), unsafe_allow_html=True)
 
     with p_head_col2:
-        col_tog, col_test1, col_test2 = st.columns([1.5, 1.1, 1.1])
-        with col_tog:
-            audio_on = st.toggle(
-                "Audio Alerts",
-                value=st.session_state["audio_alerts_enabled"],
-                key="audio_alerts_toggle",
-                help="Toggle continuous acoustic chime on Warning and Danger predictions"
-            )
-            st.session_state["audio_alerts_enabled"] = audio_on
-        with col_test1:
-            if st.button("Test Warn", key="btn_test_warn", type="secondary", use_container_width=True, help="Test subtle warning chime (continuous until turned off)"):
-                st.session_state["test_alarm_type"] = "warning"
-                st.session_state["alarm_silenced"] = False
-                st.rerun()
-        with col_test2:
-            if st.button("Test Danger", key="btn_test_danger", type="secondary", use_container_width=True, help="Test subtle danger alert (continuous until turned off)"):
-                st.session_state["test_alarm_type"] = "danger"
-                st.session_state["alarm_silenced"] = False
-                st.rerun()
-
-    # Active Test Alarm Player & Banner
-    if st.session_state.get("test_alarm_type"):
-        test_type = st.session_state["test_alarm_type"]
-        test_audio_bytes = generate_alert_wav(test_type)
-        st.audio(test_audio_bytes, format="audio/wav", loop=True, autoplay=True)
-
-        t_col1, t_col2 = st.columns([3.8, 1.2])
-        with t_col1:
-            st.markdown(clean_html(f"""
-            <div class="alarm-status-bar test">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="alarm-pulse-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#506D8A" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                </span>
-                <div>
-                  <div style="font-size: 13px; font-weight: 700; color: #17263D; text-transform: uppercase; letter-spacing: 0.5px;">Testing {test_type.title()} Alarm Sound</div>
-                  <div style="font-size: 12px; color: #506D8A; margin-top: 1px;">Repeating continuously in a subtle loop until turned off.</div>
-                </div>
-              </div>
-            </div>
-            """), unsafe_allow_html=True)
-        with t_col2:
-            st.markdown('<div class="turn-off-btn" style="margin-top: 5px;">', unsafe_allow_html=True)
-            if st.button("Turn Off Test", key="btn_stop_test_alarm", type="primary", use_container_width=True):
-                st.session_state["test_alarm_type"] = None
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+        audio_on = st.toggle(
+            "Audio Alerts",
+            value=st.session_state["audio_alerts_enabled"],
+            key="audio_alerts_toggle",
+            help="Enable continuous subtle acoustic alarms on Warning and Failure conditions"
+        )
+        st.session_state["audio_alerts_enabled"] = audio_on
 
     # SECTION 1: MACHINE INPUT
     st.markdown(clean_html("""
@@ -759,68 +719,54 @@ elif st.session_state["current_page"] == "Prediction":
             st.audio(alert_audio_bytes, format="audio/wav", loop=True, autoplay=True)
 
         # -------------------------------------------------------------
-        # PROMINENT ACTIVE ALARM BAR (Directly above Prediction Result)
+        # DEDICATED ALARM SCREEN DISPLAY (Appears on Warning/Danger until turned Off)
         # -------------------------------------------------------------
         if pred_state in ["danger", "warning"]:
             if alarm_should_ring:
-                col_bar_info, col_bar_btn = st.columns([3.8, 1.2])
-                with col_bar_info:
-                    if pred_state == "danger":
-                        st.markdown(clean_html("""
-                        <div class="alarm-status-bar danger">
-                          <div style="display: flex; align-items: center; gap: 14px;">
-                            <span class="alarm-pulse-icon">
-                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D95C5C" stroke-width="2.3"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                            </span>
-                            <div>
-                              <div style="font-size: 13.5px; font-weight: 700; color: #D95C5C; letter-spacing: 0.3px;">CRITICAL MACHINE ALARM ACTIVE</div>
-                              <div style="font-size: 12.5px; color: #17263D; margin-top: 2px;">Subtle acoustic alarm is ringing continuously. Turn off once acknowledged.</div>
-                            </div>
-                          </div>
-                        </div>
-                        """), unsafe_allow_html=True)
-                    else:
-                        st.markdown(clean_html("""
-                        <div class="alarm-status-bar warning">
-                          <div style="display: flex; align-items: center; gap: 14px;">
-                            <span class="alarm-pulse-icon">
-                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D49A3A" stroke-width="2.3"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                            </span>
-                            <div>
-                              <div style="font-size: 13.5px; font-weight: 700; color: #D49A3A; letter-spacing: 0.3px;">WARNING ADVISORY ALARM ACTIVE</div>
-                              <div style="font-size: 12.5px; color: #17263D; margin-top: 2px;">Subtle advisory chime is ringing continuously. Turn off once acknowledged.</div>
-                            </div>
-                          </div>
-                        </div>
-                        """), unsafe_allow_html=True)
-                with col_bar_btn:
-                    btn_wrapper_class = "turn-off-btn" if pred_state == "danger" else "turn-off-btn-warning"
-                    st.markdown(f'<div class="{btn_wrapper_class}" style="margin-top: 5px;">', unsafe_allow_html=True)
-                    if st.button("Turn Off Alarm", key="btn_silence_active_alarm", type="primary", use_container_width=True):
+                badge_color = "#D95C5C" if pred_state == "danger" else "#D49A3A"
+                headline = "Critical Machine Alarm" if pred_state == "danger" else "Warning Advisory Alarm"
+                subtext = (
+                    f"Potential equipment failure pattern detected ({fail_prob:.1f}% failure probability). Audible alarm is ringing continuously."
+                    if pred_state == "danger"
+                    else "Elevated operating conditions detected. Subtle advisory chime is ringing continuously."
+                )
+
+                st.markdown(clean_html(f"""
+                <div class="alarm-screen-modal {pred_state}">
+                  <div class="alarm-symbol-badge {pred_state}">
+                    <span class="alarm-pulse-icon">
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="{badge_color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        <path d="M2 8C2 6.5 2.6 5.1 3.7 4"></path>
+                        <path d="M22 8c0-1.5-.6-2.9-1.7-4"></path>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="alarm-screen-headline {pred_state}">{headline}</div>
+                  <div class="alarm-screen-subtext">{subtext}</div>
+                </div>
+                """), unsafe_allow_html=True)
+
+                # Centered Off button down below the alarm symbol
+                btn_wrap = "alarm-off-btn-danger" if pred_state == "danger" else "alarm-off-btn-warning"
+                _, col_off_btn, _ = st.columns([1.6, 1.2, 1.6])
+                with col_off_btn:
+                    st.markdown(f'<div class="{btn_wrap}" style="margin-top: -8px; margin-bottom: 24px;">', unsafe_allow_html=True)
+                    if st.button("Off", key="btn_turn_off_alarm", type="primary", use_container_width=True, help="Turn off the audible alarm"):
                         st.session_state["alarm_silenced"] = True
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
 
             elif st.session_state.get("alarm_silenced", False):
-                col_bar_info, col_bar_btn = st.columns([3.8, 1.2])
-                with col_bar_info:
-                    st.markdown(clean_html("""
-                    <div class="alarm-status-bar silenced">
-                      <div style="display: flex; align-items: center; gap: 14px;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path><path d="M18 8a6 6 0 0 0-9.33-5"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                        <div>
-                          <div style="font-size: 13.5px; font-weight: 700; color: #506D8A; letter-spacing: 0.3px;">ALARM SILENCED</div>
-                          <div style="font-size: 12.5px; color: #71869D; margin-top: 2px;">The audible alarm was turned off by operator for this assessment.</div>
-                        </div>
-                      </div>
-                    </div>
-                    """), unsafe_allow_html=True)
-                with col_bar_btn:
-                    st.markdown('<div class="resume-btn" style="margin-top: 5px;">', unsafe_allow_html=True)
-                    if st.button("Resume Alarm", key="btn_resume_active_alarm", type="secondary", use_container_width=True):
-                        st.session_state["alarm_silenced"] = False
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(clean_html("""
+                <div class="alarm-silenced-bar">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    <span style="font-size: 13px; font-weight: 600; color: #506D8A;">Alarm turned off by operator (Audible chime muted)</span>
+                  </div>
+                </div>
+                """), unsafe_allow_html=True)
 
         # Visual indicator badge inside Prediction Result card
         audio_pill_html = ""

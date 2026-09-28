@@ -736,11 +736,11 @@ div[data-testid="stToggle"] label p {
 }
 
 /* =======================================================
-   ACTIVE ALARM STATUS BAR & SILENCE CONTROLS
+   CENTERED ALARM SCREEN DISPLAY & OFF CONTROL
    ======================================================= */
 @keyframes alarmPulse {
     0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.15); opacity: 0.75; }
+    50% { transform: scale(1.12); opacity: 0.85; }
     100% { transform: scale(1); opacity: 1; }
 }
 
@@ -751,97 +751,129 @@ div[data-testid="stToggle"] label p {
     justify-content: center;
 }
 
-.alarm-status-bar {
-    border-radius: 8px !important;
-    padding: 14px 20px !important;
-    margin-bottom: 18px !important;
+.alarm-screen-modal {
+    max-width: 520px !important;
+    margin: 14px auto 16px auto !important;
+    padding: 24px 28px 16px 28px !important;
+    border-radius: 12px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+.alarm-screen-modal.danger {
+    background: #FDEDED !important;
+    border: 2px solid rgba(217, 92, 92, 0.45) !important;
+    box-shadow: 0 4px 20px rgba(217, 92, 92, 0.15) !important;
+}
+
+.alarm-screen-modal.warning {
+    background: #FFF8EE !important;
+    border: 2px solid rgba(212, 154, 58, 0.45) !important;
+    box-shadow: 0 4px 20px rgba(212, 154, 58, 0.15) !important;
+}
+
+.alarm-symbol-badge {
+    width: 68px !important;
+    height: 68px !important;
+    border-radius: 50% !important;
+    margin: 0 auto 12px auto !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    transition: all 0.2s ease !important;
+    justify-content: center !important;
+    background: #FFFFFF !important;
 }
 
-.alarm-status-bar.danger {
-    background: #FDEDED !important;
-    border: 1px solid rgba(217, 92, 92, 0.35) !important;
-    border-left: 5px solid #D95C5C !important;
-    box-shadow: 0 2px 10px rgba(217, 92, 92, 0.10) !important;
+.alarm-symbol-badge.danger {
+    border: 2.5px solid #D95C5C !important;
+    box-shadow: 0 0 0 6px rgba(217, 92, 92, 0.18) !important;
 }
 
-.alarm-status-bar.warning {
-    background: #FFF9F0 !important;
-    border: 1px solid rgba(212, 154, 58, 0.35) !important;
-    border-left: 5px solid #D49A3A !important;
-    box-shadow: 0 2px 10px rgba(212, 154, 58, 0.10) !important;
+.alarm-symbol-badge.warning {
+    border: 2.5px solid #D49A3A !important;
+    box-shadow: 0 0 0 6px rgba(212, 154, 58, 0.18) !important;
 }
 
-.alarm-status-bar.silenced {
-    background: #F4F8FA !important;
-    border: 1px solid #D8E4EC !important;
-    border-left: 5px solid #71869D !important;
+.alarm-screen-headline {
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    margin-bottom: 4px !important;
 }
 
-.alarm-status-bar.test {
-    background: #EFF6FF !important;
-    border: 1px solid rgba(80, 109, 138, 0.35) !important;
-    border-left: 5px solid #506D8A !important;
+.alarm-screen-headline.danger {
+    color: #D95C5C !important;
+    -webkit-text-fill-color: #D95C5C !important;
 }
 
-/* Turn Off Alarm Action Button Styling */
-div.turn-off-btn div.stButton > button {
+.alarm-screen-headline.warning {
+    color: #D49A3A !important;
+    -webkit-text-fill-color: #D49A3A !important;
+}
+
+.alarm-screen-subtext {
+    font-size: 13.5px !important;
+    color: #2C3E50 !important;
+    -webkit-text-fill-color: #2C3E50 !important;
+    line-height: 1.5 !important;
+    margin-bottom: 8px !important;
+    max-width: 440px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Off Button Styling */
+div.alarm-off-btn-danger div.stButton > button {
     background-color: #D95C5C !important;
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
     border: 1px solid #D95C5C !important;
     font-weight: 700 !important;
-    font-size: 13.5px !important;
-    padding: 8px 18px !important;
-    border-radius: 6px !important;
-    box-shadow: 0 2px 6px rgba(217, 92, 92, 0.25) !important;
-    transition: all 0.18s ease !important;
+    font-size: 15px !important;
+    padding: 10px 32px !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 14px rgba(217, 92, 92, 0.35) !important;
+    transition: all 0.2s ease !important;
 }
 
-div.turn-off-btn div.stButton > button:hover {
-    background-color: #C24848 !important;
-    border-color: #C24848 !important;
-    box-shadow: 0 4px 12px rgba(217, 92, 92, 0.35) !important;
+div.alarm-off-btn-danger div.stButton > button:hover {
+    background-color: #C04545 !important;
+    border-color: #C04545 !important;
+    box-shadow: 0 6px 18px rgba(217, 92, 92, 0.45) !important;
     transform: translateY(-1px) !important;
 }
 
-div.turn-off-btn-warning div.stButton > button {
+div.alarm-off-btn-warning div.stButton > button {
     background-color: #D49A3A !important;
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
     border: 1px solid #D49A3A !important;
     font-weight: 700 !important;
-    font-size: 13.5px !important;
-    padding: 8px 18px !important;
-    border-radius: 6px !important;
-    box-shadow: 0 2px 6px rgba(212, 154, 58, 0.25) !important;
-    transition: all 0.18s ease !important;
+    font-size: 15px !important;
+    padding: 10px 32px !important;
+    border-radius: 8px !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 14px rgba(212, 154, 58, 0.35) !important;
+    transition: all 0.2s ease !important;
 }
 
-div.turn-off-btn-warning div.stButton > button:hover {
-    background-color: #BF872E !important;
-    border-color: #BF872E !important;
-    box-shadow: 0 4px 12px rgba(212, 154, 58, 0.35) !important;
+div.alarm-off-btn-warning div.stButton > button:hover {
+    background-color: #BA842E !important;
+    border-color: #BA842E !important;
+    box-shadow: 0 6px 18px rgba(212, 154, 58, 0.45) !important;
     transform: translateY(-1px) !important;
 }
 
-div.resume-btn div.stButton > button {
-    background-color: #FFFFFF !important;
-    color: #17263D !important;
-    -webkit-text-fill-color: #17263D !important;
+div.alarm-silenced-bar {
+    background: #F4F8FA !important;
     border: 1px solid #D8E4EC !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    padding: 8px 16px !important;
+    border-left: 4px solid #71869D !important;
+    padding: 10px 18px !important;
     border-radius: 6px !important;
-}
-
-div.resume-btn div.stButton > button:hover {
-    background-color: #EEF5F8 !important;
-    border-color: #8BA6C1 !important;
+    margin-bottom: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
 }
 </style>
 """

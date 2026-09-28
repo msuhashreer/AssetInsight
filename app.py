@@ -5,10 +5,20 @@ Clean industrial theme, zero emojis, intuitive inputs, dual-tier non-overlapping
 """
 
 import os
+import sys
 import io
+import wave
+import struct
+import math
+import importlib
 import streamlit as st
 import pandas as pd
 import numpy as np
+
+# Prioritize local project directory in sys.path
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 # Configure Streamlit page (no emojis in title or icon)
 st.set_page_config(
@@ -17,19 +27,60 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Evict stale local modules from persistent worker memory (Streamlit Cloud)
+if "utils" in sys.modules and not hasattr(sys.modules["utils"], "generate_alert_wav"):
+    del sys.modules["utils"]
+
 # Import local modules
-from model import ModelEngine, NUMERIC_FEATURES, FEATURE_COLS
-from style import CUSTOM_CSS
-from utils import (
-    clean_html,
-    generate_health_gauge_svg,
-    get_parameter_comparison_data,
-    render_comparison_scale_svg,
-    render_model_contribution_chart_svg,
-    generate_dynamic_recommendations,
-    generate_excel_bytes,
-    generate_alert_wav
-)
+import model
+import style
+import utils
+
+ModelEngine = model.ModelEngine
+NUMERIC_FEATURES = model.NUMERIC_FEATURES
+FEATURE_COLS = model.FEATURE_COLS
+CUSTOM_CSS = style.CUSTOM_CSS
+
+clean_html = utils.clean_html
+generate_health_gauge_svg = utils.generate_health_gauge_svg
+get_parameter_comparison_data = utils.get_parameter_comparison_data
+render_comparison_scale_svg = utils.render_comparison_scale_svg
+render_model_contribution_chart_svg = utils.render_model_contribution_chart_svg
+generate_dynamic_recommendations = utils.generate_dynamic_recommendations
+generate_excel_bytes = utils.generate_excel_bytes
+
+# Resilient audio alert generator with embedded fallback
+if hasattr(utils, "generate_alert_wav"):
+    generate_alert_wav = utils.generate_alert_wav
+else:
+    def generate_alert_wav(alert_type: str = "warning") -> bytes:
+        sample_rate = 22050
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sample_rate)
+            if alert_type == "warning":
+                tones = [(587.33, 0.16, 0.18), (880.0, 0.22, 0.20)]
+            elif alert_type == "failure":
+                tones = [(880.0, 0.14, 0.22), (739.99, 0.14, 0.24), (587.33, 0.28, 0.25)]
+            else:
+                return b""
+            frames = bytearray()
+            for freq, duration, vol in tones:
+                num_samples = int(sample_rate * duration)
+                for i in range(num_samples):
+                    t = i / sample_rate
+                    attack = min(1.0, i / (sample_rate * 0.015))
+                    decay = math.exp(-3.8 * (i / num_samples))
+                    env = attack * decay
+                    val = math.sin(2 * math.pi * freq * t) + 0.18 * math.sin(4 * math.pi * freq * t)
+                    sample = int(32767 * vol * env * (val / 1.18))
+                    sample = max(-32768, min(32767, sample))
+                    frames.extend(struct.pack("<h", sample))
+            w.writeframes(frames)
+        buf.seek(0)
+        return buf.read()
 
 # Inject custom industrial styling
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)

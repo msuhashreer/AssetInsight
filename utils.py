@@ -11,9 +11,14 @@ import struct
 import math
 import pandas as pd
 import numpy as np
-import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
+
+try:
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    HAS_OPENPYXL = True
+except ImportError:
+    HAS_OPENPYXL = False
 
 # Ensure matplotlib cache is in a writable location
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
@@ -389,7 +394,18 @@ def generate_dynamic_recommendations(prediction: int, prob: float, shap_dict: di
 def generate_excel_bytes(df: pd.DataFrame) -> bytes:
     """
     Creates an Excel spreadsheet in memory using OpenPyXL with professional styling.
+    Falls back gracefully if openpyxl is not available in the runtime.
     """
+    if not HAS_OPENPYXL:
+        buf = io.BytesIO()
+        try:
+            with pd.ExcelWriter(buf, engine=None) as writer:
+                df.to_excel(writer, index=False)
+        except Exception:
+            # Direct CSV bytes fallback
+            return df.to_csv(index=False).encode("utf-8")
+        return buf.getvalue()
+
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "AI4I 2020 Dataset"

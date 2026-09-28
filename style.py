@@ -751,129 +751,74 @@ div[data-testid="stToggle"] label p {
     justify-content: center;
 }
 
-.alarm-screen-modal {
-    max-width: 520px !important;
-    margin: 14px auto 16px auto !important;
-    padding: 24px 28px 16px 28px !important;
-    border-radius: 12px !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
-}
-
-.alarm-screen-modal.danger {
-    background: #FDEDED !important;
-    border: 2px solid rgba(217, 92, 92, 0.45) !important;
-    box-shadow: 0 4px 20px rgba(217, 92, 92, 0.15) !important;
-}
-
-.alarm-screen-modal.warning {
-    background: #FFF8EE !important;
-    border: 2px solid rgba(212, 154, 58, 0.45) !important;
-    box-shadow: 0 4px 20px rgba(212, 154, 58, 0.15) !important;
-}
-
-.alarm-symbol-badge {
-    width: 68px !important;
-    height: 68px !important;
+.alarm-round-card {
+    width: 200px !important;
+    height: 200px !important;
     border-radius: 50% !important;
-    margin: 0 auto 12px auto !important;
+    margin: 12px auto 16px auto !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    background: #FFFFFF !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    padding: 16px !important;
+    transition: all 0.25s ease !important;
 }
 
-.alarm-symbol-badge.danger {
-    border: 2.5px solid #D95C5C !important;
-    box-shadow: 0 0 0 6px rgba(217, 92, 92, 0.18) !important;
+.alarm-round-card.danger {
+    background: #FDEDED !important;
+    border: 3px solid #D95C5C !important;
+    box-shadow: 0 0 0 8px rgba(217, 92, 92, 0.16), 0 8px 24px rgba(217, 92, 92, 0.22) !important;
 }
 
-.alarm-symbol-badge.warning {
-    border: 2.5px solid #D49A3A !important;
-    box-shadow: 0 0 0 6px rgba(212, 154, 58, 0.18) !important;
+.alarm-round-card.warning {
+    background: #FFF8EE !important;
+    border: 3px solid #D49A3A !important;
+    box-shadow: 0 0 0 8px rgba(212, 154, 58, 0.16), 0 8px 24px rgba(212, 154, 58, 0.22) !important;
 }
 
-.alarm-screen-headline {
-    font-size: 19px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.3px !important;
-    margin-bottom: 4px !important;
-}
-
-.alarm-screen-headline.danger {
-    color: #D95C5C !important;
-    -webkit-text-fill-color: #D95C5C !important;
-}
-
-.alarm-screen-headline.warning {
-    color: #D49A3A !important;
-    -webkit-text-fill-color: #D49A3A !important;
-}
-
-.alarm-screen-subtext {
-    font-size: 13.5px !important;
-    color: #2C3E50 !important;
-    -webkit-text-fill-color: #2C3E50 !important;
-    line-height: 1.5 !important;
-    margin-bottom: 8px !important;
-    max-width: 440px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-/* Off Button Styling */
-div.alarm-off-btn-danger div.stButton > button {
+/* Turn Off Button centered down below round card */
+div.turn-off-btn-danger div.stButton > button {
     background-color: #D95C5C !important;
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
     border: 1px solid #D95C5C !important;
     font-weight: 700 !important;
-    font-size: 15px !important;
-    padding: 10px 32px !important;
+    font-size: 14.5px !important;
+    padding: 10px 28px !important;
     border-radius: 8px !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 0.3px !important;
     box-shadow: 0 4px 14px rgba(217, 92, 92, 0.35) !important;
     transition: all 0.2s ease !important;
 }
 
-div.alarm-off-btn-danger div.stButton > button:hover {
+div.turn-off-btn-danger div.stButton > button:hover {
     background-color: #C04545 !important;
     border-color: #C04545 !important;
     box-shadow: 0 6px 18px rgba(217, 92, 92, 0.45) !important;
     transform: translateY(-1px) !important;
 }
 
-div.alarm-off-btn-warning div.stButton > button {
+div.turn-off-btn-warning div.stButton > button {
     background-color: #D49A3A !important;
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
     border: 1px solid #D49A3A !important;
     font-weight: 700 !important;
-    font-size: 15px !important;
-    padding: 10px 32px !important;
+    font-size: 14.5px !important;
+    padding: 10px 28px !important;
     border-radius: 8px !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 0.3px !important;
     box-shadow: 0 4px 14px rgba(212, 154, 58, 0.35) !important;
     transition: all 0.2s ease !important;
 }
 
-div.alarm-off-btn-warning div.stButton > button:hover {
+div.turn-off-btn-warning div.stButton > button:hover {
     background-color: #BA842E !important;
     border-color: #BA842E !important;
     box-shadow: 0 6px 18px rgba(212, 154, 58, 0.45) !important;
     transform: translateY(-1px) !important;
-}
-
-div.alarm-silenced-bar {
-    background: #F4F8FA !important;
-    border: 1px solid #D8E4EC !important;
-    border-left: 4px solid #71869D !important;
-    padding: 10px 18px !important;
-    border-radius: 6px !important;
-    margin-bottom: 18px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
 }
 </style>
 """

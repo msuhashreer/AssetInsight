@@ -208,11 +208,6 @@ if "prediction_counter" not in st.session_state:
 if "alarm_silenced" not in st.session_state:
     st.session_state["alarm_silenced"] = False
 
-if "last_alarm_pred_counter" not in st.session_state:
-    st.session_state["last_alarm_pred_counter"] = 0
-
-if "test_alarm_type" not in st.session_state:
-    st.session_state["test_alarm_type"] = None
 
 
 # -------------------------------------------------------------
@@ -466,7 +461,6 @@ elif st.session_state["current_page"] == "Prediction":
             st.session_state["has_prediction"] = False
             st.session_state["prediction_result"] = None
             st.session_state["alarm_silenced"] = False
-            st.session_state["test_alarm_type"] = None
             st.rerun()
 
     with b_col2:
@@ -483,7 +477,6 @@ elif st.session_state["current_page"] == "Prediction":
             st.session_state["has_prediction"] = False
             st.session_state["prediction_result"] = None
             st.session_state["alarm_silenced"] = False
-            st.session_state["test_alarm_type"] = None
             st.rerun()
 
     with b_col3:
@@ -500,7 +493,6 @@ elif st.session_state["current_page"] == "Prediction":
             st.session_state["has_prediction"] = False
             st.session_state["prediction_result"] = None
             st.session_state["alarm_silenced"] = False
-            st.session_state["test_alarm_type"] = None
             st.rerun()
 
     with b_col4:
@@ -514,7 +506,6 @@ elif st.session_state["current_page"] == "Prediction":
             st.session_state["has_prediction"] = False
             st.session_state["prediction_result"] = None
             st.session_state["alarm_silenced"] = False
-            st.session_state["test_alarm_type"] = None
             st.rerun()
 
     st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
@@ -674,7 +665,6 @@ elif st.session_state["current_page"] == "Prediction":
             st.session_state["has_prediction"] = True
             st.session_state["prediction_counter"] = st.session_state.get("prediction_counter", 0) + 1
             st.session_state["alarm_silenced"] = False
-            st.session_state["test_alarm_type"] = None
             st.rerun()
 
     st.markdown("</div></div>", unsafe_allow_html=True)
@@ -719,86 +709,43 @@ elif st.session_state["current_page"] == "Prediction":
             st.audio(alert_audio_bytes, format="audio/wav", loop=True, autoplay=True)
 
         # -------------------------------------------------------------
-        # DEDICATED ALARM SCREEN DISPLAY (Appears on Warning/Danger until turned Off)
+        # ROUND ALARM CARD DISPLAY (Appears on Warning/Danger until Turn Off is pressed)
         # -------------------------------------------------------------
-        if pred_state in ["danger", "warning"]:
-            if alarm_should_ring:
-                badge_color = "#D95C5C" if pred_state == "danger" else "#D49A3A"
-                headline = "Critical Machine Alarm" if pred_state == "danger" else "Warning Advisory Alarm"
-                subtext = (
-                    f"Potential equipment failure pattern detected ({fail_prob:.1f}% failure probability). Audible alarm is ringing continuously."
-                    if pred_state == "danger"
-                    else "Elevated operating conditions detected. Subtle advisory chime is ringing continuously."
-                )
+        if pred_state in ["danger", "warning"] and alarm_should_ring:
+            badge_color = "#D95C5C" if pred_state == "danger" else "#D49A3A"
+            headline = "DANGER ALARM" if pred_state == "danger" else "WARNING ALARM"
+            status_desc = f"{fail_prob:.1f}% Failure Risk" if pred_state == "danger" else "Elevated Conditions"
 
-                st.markdown(clean_html(f"""
-                <div class="alarm-screen-modal {pred_state}">
-                  <div class="alarm-symbol-badge {pred_state}">
-                    <span class="alarm-pulse-icon">
-                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="{badge_color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        <path d="M2 8C2 6.5 2.6 5.1 3.7 4"></path>
-                        <path d="M22 8c0-1.5-.6-2.9-1.7-4"></path>
-                      </svg>
-                    </span>
-                  </div>
-                  <div class="alarm-screen-headline {pred_state}">{headline}</div>
-                  <div class="alarm-screen-subtext">{subtext}</div>
+            st.markdown(clean_html(f"""
+            <div style="text-align: center; margin: 8px 0 12px 0;">
+              <div class="alarm-round-card {pred_state}">
+                <span class="alarm-pulse-icon">
+                  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="{badge_color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    <path d="M2 8C2 6.5 2.6 5.1 3.7 4"></path>
+                    <path d="M22 8c0-1.5-.6-2.9-1.7-4"></path>
+                  </svg>
+                </span>
+                <div style="font-size: 13px; font-weight: 800; color: {badge_color}; letter-spacing: 0.8px; margin-top: 8px; text-transform: uppercase;">
+                  {headline}
                 </div>
-                """), unsafe_allow_html=True)
-
-                # Centered Off button down below the alarm symbol
-                btn_wrap = "alarm-off-btn-danger" if pred_state == "danger" else "alarm-off-btn-warning"
-                _, col_off_btn, _ = st.columns([1.6, 1.2, 1.6])
-                with col_off_btn:
-                    st.markdown(f'<div class="{btn_wrap}" style="margin-top: -8px; margin-bottom: 24px;">', unsafe_allow_html=True)
-                    if st.button("Off", key="btn_turn_off_alarm", type="primary", use_container_width=True, help="Turn off the audible alarm"):
-                        st.session_state["alarm_silenced"] = True
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-            elif st.session_state.get("alarm_silenced", False):
-                st.markdown(clean_html("""
-                <div class="alarm-silenced-bar">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                    <span style="font-size: 13px; font-weight: 600; color: #506D8A;">Alarm turned off by operator (Audible chime muted)</span>
-                  </div>
+                <div style="font-size: 11.5px; font-weight: 600; color: #506D8A; margin-top: 2px;">
+                  {status_desc}
                 </div>
-                """), unsafe_allow_html=True)
+              </div>
+            </div>
+            """), unsafe_allow_html=True)
 
-        # Visual indicator badge inside Prediction Result card
-        audio_pill_html = ""
-        if st.session_state.get("audio_alerts_enabled", True):
-            if pred_state == "danger":
-                if alarm_should_ring:
-                    audio_pill_html = clean_html("""<span class="audio-alert-indicator failure" title="Acoustic danger alarm ringing continuously">
-                      <span class="alarm-pulse-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D95C5C" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></span>
-                      Alarm Ringing
-                    </span>""")
-                else:
-                    audio_pill_html = clean_html("""<span class="audio-alert-indicator muted" title="Alarm turned off by operator">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                      Alarm Silenced
-                    </span>""")
-            elif pred_state == "warning":
-                if alarm_should_ring:
-                    audio_pill_html = clean_html("""<span class="audio-alert-indicator warning" title="Subtle advisory chime ringing continuously">
-                      <span class="alarm-pulse-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D49A3A" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></span>
-                      Warning Chime Ringing
-                    </span>""")
-                else:
-                    audio_pill_html = clean_html("""<span class="audio-alert-indicator muted" title="Chime turned off by operator">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                      Chime Silenced
-                    </span>""")
-        else:
-            if pred_state in ["warning", "danger"]:
-                audio_pill_html = clean_html("""<span class="audio-alert-indicator muted" title="Audio alerts disabled in header">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                  Alerts Muted
-                </span>""")
+            # Centered Turn Off button directly down below the round card
+            btn_wrap = "turn-off-btn-danger" if pred_state == "danger" else "turn-off-btn-warning"
+            _, col_off_btn, _ = st.columns([1.6, 1.2, 1.6])
+            with col_off_btn:
+                st.markdown(f'<div class="{btn_wrap}" style="margin-top: -6px; margin-bottom: 24px;">', unsafe_allow_html=True)
+                if st.button("Turn Off", key="btn_turn_off_alarm", type="primary", use_container_width=True, help="Turn off the audible alarm"):
+                    st.session_state["alarm_silenced"] = True
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
         alert_banner_html = ""
         if flagged:
@@ -807,15 +754,12 @@ elif st.session_state["current_page"] == "Prediction":
               <strong>Action Focus:</strong> Elevated operating parameters detected in <strong>{flagged_str}</strong>. Detailed diagnostic recommendations are available on the Analysis page.
             </div>"""
 
-        # SECTION 3: PREDICTION RESULT (Large rectangular card)
+        # SECTION 3: PREDICTION RESULT (Large rectangular card - exactly as before)
         st.markdown(clean_html(f"""
         <div class="ai-card" style="border-left: 5px solid {result_accent}; padding: 22px 26px; margin-bottom: 22px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="display: flex; align-items: center;">
-                <span style="font-size: 11.5px; font-weight: 700; color: #71869D; text-transform: uppercase; letter-spacing: 0.6px;">Prediction Result</span>
-                {audio_pill_html}
-              </div>
+              <span style="font-size: 11.5px; font-weight: 700; color: #71869D; text-transform: uppercase; letter-spacing: 0.6px;">Prediction Result</span>
               <div style="font-size: 24px; font-weight: 700; color: {result_accent}; margin-top: 3px;">
                 {status_label}
               </div>

@@ -168,7 +168,7 @@ if st.session_state["current_page"] == "Overview":
     st.markdown(clean_html("""
     <div class="page-header">
       <div>
-        <h1 class="page-title">Machine Health Overview</h1>
+        <h1 class="page-title" style="color: #17263D;">Machine Health Overview</h1>
         <p class="page-subtitle">Get a quick understanding of the machine data and its overall health.</p>
       </div>
       <div class="badge-tag">
@@ -224,7 +224,7 @@ if st.session_state["current_page"] == "Overview":
     # SECTION 2: OVERALL MACHINE HEALTH (Gauge + Key Insight)
     st.markdown(clean_html("""
     <div class="section-header">
-      <h2 class="section-title">Overall Machine Health</h2>
+      <h2 class="section-title" style="color: #17263D;">Overall Machine Health</h2>
       <p class="section-desc">Distribution of machine operating conditions in the dataset.</p>
     </div>
     """), unsafe_allow_html=True)
@@ -268,7 +268,7 @@ if st.session_state["current_page"] == "Overview":
     # No arbitrary/random numbers displayed on front.
     st.markdown(clean_html("""
     <div class="section-header">
-      <h2 class="section-title">Key Operating Parameters</h2>
+      <h2 class="section-title" style="color: #17263D;">Key Operating Parameters</h2>
       <p class="section-desc">Critical operating variables monitored by the system. Hover over any parameter card to inspect its physical rationale.</p>
     </div>
     """), unsafe_allow_html=True)
@@ -336,7 +336,7 @@ elif st.session_state["current_page"] == "Prediction":
     st.markdown(clean_html("""
     <div class="page-header">
       <div>
-        <h1 class="page-title">Machine Failure Prediction</h1>
+        <h1 class="page-title" style="color: #17263D;">Machine Failure Prediction</h1>
         <p class="page-subtitle">Given these machine operating conditions, is the machine likely to experience failure?</p>
       </div>
     </div>
@@ -345,7 +345,7 @@ elif st.session_state["current_page"] == "Prediction":
     # SECTION 1: MACHINE INPUT
     st.markdown(clean_html("""
     <div class="section-header" style="margin-top: 0.3rem;">
-      <h2 class="section-title">Machine Operating Inputs</h2>
+      <h2 class="section-title" style="color: #17263D;">Machine Operating Inputs</h2>
       <p class="section-desc">Enter observed machine operational parameters below. You can enter values manually or select a condition preset to populate representative dataset values.</p>
     </div>
     """), unsafe_allow_html=True)
@@ -622,7 +622,7 @@ elif st.session_state["current_page"] == "Prediction":
         # SECTION 4: OPERATING PATTERN (Isolation Forest with slide-out Reason card)
         st.markdown(clean_html("""
         <div class="section-header">
-          <h2 class="section-title">Operating Pattern</h2>
+          <h2 class="section-title" style="color: #17263D;">Operating Pattern</h2>
           <p class="section-desc">Multivariate anomaly detection via Isolation Forest to determine whether the combination looks unusual compared with observed data.</p>
         </div>
         """), unsafe_allow_html=True)
@@ -679,7 +679,7 @@ elif st.session_state["current_page"] == "Analysis":
     st.markdown(clean_html("""
     <div class="page-header">
       <div>
-        <h1 class="page-title">Prediction Explanation & Recommendations</h1>
+        <h1 class="page-title" style="color: #17263D;">Prediction Explanation & Recommendations</h1>
         <p class="page-subtitle">Why did the model make this prediction, and what should I monitor?</p>
       </div>
     </div>
@@ -711,7 +711,7 @@ elif st.session_state["current_page"] == "Analysis":
         # =========================================================
         st.markdown(clean_html("""
         <div class="section-header" style="margin-top: 0.3rem;">
-          <h2 class="section-title">Prediction Summary</h2>
+          <h2 class="section-title" style="color: #17263D;">Prediction Summary</h2>
           <p class="section-desc">Machine condition evaluated from the exact parameters entered on the Prediction page.</p>
         </div>
         """), unsafe_allow_html=True)
@@ -802,7 +802,7 @@ elif st.session_state["current_page"] == "Analysis":
         # =========================================================
         st.markdown(clean_html("""
         <div class="section-header" style="margin-top: 2rem;">
-          <h2 class="section-title">Prediction Explanation</h2>
+          <h2 class="section-title" style="color: #17263D;">Prediction Explanation</h2>
           <p class="section-desc">Explain how the operating conditions relate to the model prediction.</p>
         </div>
         """), unsafe_allow_html=True)
@@ -877,7 +877,7 @@ elif st.session_state["current_page"] == "Analysis":
         # =========================================================
         st.markdown(clean_html("""
         <div class="section-header" style="margin-top: 2rem;">
-          <h2 class="section-title">Recommended Action</h2>
+          <h2 class="section-title" style="color: #17263D;">Recommended Action</h2>
           <p class="section-desc">What should I watch?</p>
         </div>
         """), unsafe_allow_html=True)
@@ -941,7 +941,7 @@ elif st.session_state["current_page"] == "Dataset":
     st.markdown(clean_html("""
     <div class="page-header">
       <div>
-        <h1 class="page-title">AI4I 2020 Predictive Maintenance Dataset</h1>
+        <h1 class="page-title" style="color: #17263D;">AI4I 2020 Predictive Maintenance Dataset</h1>
         <p class="page-subtitle">Inspect the complete dataset used for predictive maintenance modeling.</p>
       </div>
       <div class="badge-tag">

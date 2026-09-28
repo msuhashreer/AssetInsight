@@ -24,57 +24,60 @@ except ImportError:
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
 
 
-def generate_alert_wav(alert_type: str = "warning") -> bytes:
+def generate_alert_wav(alert_type: str = "warning", duration_seconds: float = 60.0) -> bytes:
     """
     Generates a pure, subtle industrial alert tone in-memory as WAV audio bytes.
-    Optimized for smooth continuous looping with built-in acoustic breathing intervals:
+    Repeats the acoustic chime/triad cycle continuously for `duration_seconds` (default 60s)
+    with smooth breathing intervals so that the sound rings continuously until turned off:
     - warning: Soft, delicate two-tone ascending melodic chime (F#5: 740 Hz -> A5: 880 Hz)
-      at low volume (0.12 - 0.14) followed by 2.0s silence (2.5s total loop).
+      repeating every 2.5s cycle (24 cycles in 60s).
     - danger/failure: Distinct 3-tone harmonic triad (C#5: 554 Hz -> E5: 659 Hz -> A5: 880 Hz)
-      at moderate volume (0.18 - 0.22) followed by 1.2s silence (1.8s total loop).
+      repeating every 1.8s cycle (33 cycles in 60s).
     - normal: b"" (zero sound).
     Uses pure Python standard library (wave, struct, math) with zero external dependencies.
     """
-    sample_rate = 22050
-    buf = io.BytesIO()
-    with wave.open(buf, "wb") as w:
-        w.setnchannels(1)
-        w.setsampwidth(2)
-        w.setframerate(sample_rate)
+    sample_rate = 16000
+    if alert_type == "warning":
+        cycle_len = 2.5
+        tones = [
+            (739.99, 0.0, 0.18, 0.14),
+            (880.00, 0.18, 0.28, 0.16),
+        ]
+    elif alert_type in ["danger", "failure"]:
+        cycle_len = 1.8
+        tones = [
+            (554.37, 0.0, 0.16, 0.18),
+            (659.25, 0.16, 0.16, 0.20),
+            (880.00, 0.32, 0.30, 0.22),
+        ]
+    else:
+        return b""
 
-        if alert_type == "warning":
-            total_duration = 2.5
-            tones = [
-                (739.99, 0.0, 0.18, 0.12),
-                (880.00, 0.18, 0.28, 0.14),
-            ]
-        elif alert_type in ["danger", "failure"]:
-            total_duration = 1.8
-            tones = [
-                (554.37, 0.0, 0.16, 0.18),
-                (659.25, 0.16, 0.16, 0.20),
-                (880.00, 0.32, 0.30, 0.22),
-            ]
-        else:
-            return b""
+    total_samples = int(sample_rate * duration_seconds)
+    samples = [0.0] * total_samples
+    num_cycles = int(duration_seconds / cycle_len)
 
-        total_samples = int(sample_rate * total_duration)
-        samples = [0.0] * total_samples
-
-        for freq, start_t, duration, vol in tones:
-            start_idx = int(sample_rate * start_t)
-            num_samples = int(sample_rate * duration)
-            for i in range(num_samples):
+    for cycle_i in range(num_cycles):
+        cycle_offset = cycle_i * cycle_len
+        for freq, start_t, dur, vol in tones:
+            start_idx = int(sample_rate * (cycle_offset + start_t))
+            n_samples = int(sample_rate * dur)
+            for i in range(n_samples):
                 idx = start_idx + i
                 if idx >= total_samples:
                     break
                 t = i / sample_rate
                 attack = min(1.0, (i / (sample_rate * 0.015)) ** 2)
-                decay = math.exp(-4.2 * (i / num_samples))
+                decay = math.exp(-4.2 * (i / n_samples))
                 env = attack * decay
                 val = math.sin(2 * math.pi * freq * t) + 0.20 * math.sin(4 * math.pi * freq * t)
                 samples[idx] += (val / 1.20) * vol * env
 
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sample_rate)
         frames = bytearray()
         for s in samples:
             s_clamped = max(-1.0, min(1.0, s))

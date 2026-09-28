@@ -818,18 +818,20 @@ div.stDialog h2 {
     padding: 0 !important;
 }
 
-/* Hide native HTML audio player widget inside dialog */
+/* Position audio player off-screen without display:none so browser audio engine never throttles it */
 div[data-testid="stDialog"] audio,
 div.stDialog audio,
 div[data-testid="stDialog"] [data-testid="stAudio"],
 div.stDialog [data-testid="stAudio"] {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    max-height: 0 !important;
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 1px !important;
+    height: 1px !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
+    z-index: -1 !important;
 }
 
 /* Modal Dialog Box: clean, elegant white container centered on screen */

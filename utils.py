@@ -27,8 +27,12 @@ os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
 def generate_alert_wav(alert_type: str = "warning") -> bytes:
     """
     Generates a pure, subtle industrial alert tone in-memory as WAV audio bytes.
-    - warning: Soft, warm ascending two-tone chime (D5: 587.33 Hz -> A5: 880.0 Hz).
-    - failure: Distinct three-tone alert chime (A5: 880 Hz -> F#5: 740 Hz -> D5: 587.33 Hz).
+    Optimized for smooth continuous looping with built-in acoustic breathing intervals:
+    - warning: Soft, delicate two-tone ascending melodic chime (F#5: 740 Hz -> A5: 880 Hz)
+      at low volume (0.12 - 0.14) followed by 2.0s silence (2.5s total loop).
+    - danger/failure: Distinct 3-tone harmonic triad (C#5: 554 Hz -> E5: 659 Hz -> A5: 880 Hz)
+      at moderate volume (0.18 - 0.22) followed by 1.2s silence (1.8s total loop).
+    - normal: b"" (zero sound).
     Uses pure Python standard library (wave, struct, math) with zero external dependencies.
     """
     sample_rate = 22050
@@ -39,25 +43,45 @@ def generate_alert_wav(alert_type: str = "warning") -> bytes:
         w.setframerate(sample_rate)
 
         if alert_type == "warning":
-            tones = [(587.33, 0.16, 0.18), (880.0, 0.22, 0.20)]
-        elif alert_type == "failure":
-            tones = [(880.0, 0.14, 0.22), (739.99, 0.14, 0.24), (587.33, 0.28, 0.25)]
+            total_duration = 2.5
+            tones = [
+                (739.99, 0.0, 0.18, 0.12),
+                (880.00, 0.18, 0.28, 0.14),
+            ]
+        elif alert_type in ["danger", "failure"]:
+            total_duration = 1.8
+            tones = [
+                (554.37, 0.0, 0.16, 0.18),
+                (659.25, 0.16, 0.16, 0.20),
+                (880.00, 0.32, 0.30, 0.22),
+            ]
         else:
             return b""
 
-        frames = bytearray()
-        for freq, duration, vol in tones:
+        total_samples = int(sample_rate * total_duration)
+        samples = [0.0] * total_samples
+
+        for freq, start_t, duration, vol in tones:
+            start_idx = int(sample_rate * start_t)
             num_samples = int(sample_rate * duration)
             for i in range(num_samples):
+                idx = start_idx + i
+                if idx >= total_samples:
+                    break
                 t = i / sample_rate
-                attack = min(1.0, i / (sample_rate * 0.015))
-                decay = math.exp(-3.8 * (i / num_samples))
+                attack = min(1.0, (i / (sample_rate * 0.015)) ** 2)
+                decay = math.exp(-4.2 * (i / num_samples))
                 env = attack * decay
-                val = math.sin(2 * math.pi * freq * t) + 0.18 * math.sin(4 * math.pi * freq * t)
-                sample = int(32767 * vol * env * (val / 1.18))
-                sample = max(-32768, min(32767, sample))
-                frames.extend(struct.pack("<h", sample))
+                val = math.sin(2 * math.pi * freq * t) + 0.20 * math.sin(4 * math.pi * freq * t)
+                samples[idx] += (val / 1.20) * vol * env
+
+        frames = bytearray()
+        for s in samples:
+            s_clamped = max(-1.0, min(1.0, s))
+            sample_val = int(32767 * s_clamped)
+            frames.extend(struct.pack("<h", sample_val))
         w.writeframes(frames)
+
     buf.seek(0)
     return buf.read()
 

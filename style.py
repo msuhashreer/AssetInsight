@@ -734,5 +734,114 @@ div[data-testid="stToggle"] label p {
     background: #EEF5F8 !important;
     border: 1px solid #D8E4EC !important;
 }
+
+/* =======================================================
+   ACTIVE ALARM STATUS BAR & SILENCE CONTROLS
+   ======================================================= */
+@keyframes alarmPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.75; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.alarm-pulse-icon {
+    animation: alarmPulse 1.6s ease-in-out infinite;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alarm-status-bar {
+    border-radius: 8px !important;
+    padding: 14px 20px !important;
+    margin-bottom: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    transition: all 0.2s ease !important;
+}
+
+.alarm-status-bar.danger {
+    background: #FDEDED !important;
+    border: 1px solid rgba(217, 92, 92, 0.35) !important;
+    border-left: 5px solid #D95C5C !important;
+    box-shadow: 0 2px 10px rgba(217, 92, 92, 0.10) !important;
+}
+
+.alarm-status-bar.warning {
+    background: #FFF9F0 !important;
+    border: 1px solid rgba(212, 154, 58, 0.35) !important;
+    border-left: 5px solid #D49A3A !important;
+    box-shadow: 0 2px 10px rgba(212, 154, 58, 0.10) !important;
+}
+
+.alarm-status-bar.silenced {
+    background: #F4F8FA !important;
+    border: 1px solid #D8E4EC !important;
+    border-left: 5px solid #71869D !important;
+}
+
+.alarm-status-bar.test {
+    background: #EFF6FF !important;
+    border: 1px solid rgba(80, 109, 138, 0.35) !important;
+    border-left: 5px solid #506D8A !important;
+}
+
+/* Turn Off Alarm Action Button Styling */
+div.turn-off-btn div.stButton > button {
+    background-color: #D95C5C !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    border: 1px solid #D95C5C !important;
+    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    padding: 8px 18px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 6px rgba(217, 92, 92, 0.25) !important;
+    transition: all 0.18s ease !important;
+}
+
+div.turn-off-btn div.stButton > button:hover {
+    background-color: #C24848 !important;
+    border-color: #C24848 !important;
+    box-shadow: 0 4px 12px rgba(217, 92, 92, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+div.turn-off-btn-warning div.stButton > button {
+    background-color: #D49A3A !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    border: 1px solid #D49A3A !important;
+    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    padding: 8px 18px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 6px rgba(212, 154, 58, 0.25) !important;
+    transition: all 0.18s ease !important;
+}
+
+div.turn-off-btn-warning div.stButton > button:hover {
+    background-color: #BF872E !important;
+    border-color: #BF872E !important;
+    box-shadow: 0 4px 12px rgba(212, 154, 58, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+div.resume-btn div.stButton > button {
+    background-color: #FFFFFF !important;
+    color: #17263D !important;
+    -webkit-text-fill-color: #17263D !important;
+    border: 1px solid #D8E4EC !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+}
+
+div.resume-btn div.stButton > button:hover {
+    background-color: #EEF5F8 !important;
+    border-color: #8BA6C1 !important;
+}
 </style>
 """

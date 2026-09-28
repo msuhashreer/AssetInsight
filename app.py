@@ -27,7 +27,8 @@ from utils import (
     render_comparison_scale_svg,
     render_model_contribution_chart_svg,
     generate_dynamic_recommendations,
-    generate_excel_bytes
+    generate_excel_bytes,
+    generate_alert_wav
 )
 
 # Inject custom industrial styling
@@ -127,6 +128,19 @@ if "warning_cycle_idx" not in st.session_state:
 if "failure_cycle_idx" not in st.session_state:
     st.session_state["failure_cycle_idx"] = 0
 
+# Audio Alert state management
+if "audio_alerts_enabled" not in st.session_state:
+    st.session_state["audio_alerts_enabled"] = True
+
+if "prediction_counter" not in st.session_state:
+    st.session_state["prediction_counter"] = 0
+
+if "last_played_prediction_counter" not in st.session_state:
+    st.session_state["last_played_prediction_counter"] = 0
+
+if "trigger_test_alert" not in st.session_state:
+    st.session_state["trigger_test_alert"] = False
+
 
 # -------------------------------------------------------------
 # GLOBAL FIXED SIDEBAR (Strictly NO EMOJIS, pure professional typography)
@@ -221,11 +235,11 @@ if st.session_state["current_page"] == "Overview":
         </div>
         """), unsafe_allow_html=True)
 
-    # SECTION 2: OVERALL MACHINE HEALTH (Gauge + Key Insight)
+    # SECTION 2: DATASET HEALTH DISTRIBUTION (Gauge + Key Insight)
     st.markdown(clean_html("""
     <div class="section-header">
-      <h2 class="section-title" style="color: #17263D;">Overall Machine Health</h2>
-      <p class="section-desc">Distribution of machine operating conditions in the dataset.</p>
+      <h2 class="section-title" style="color: #17263D;">Dataset Health Distribution</h2>
+      <p class="section-desc">Historical proportion of normal operations vs. recorded failure events across the 10,000 AI4I 2020 machine records.</p>
     </div>
     """), unsafe_allow_html=True)
 
@@ -235,10 +249,11 @@ if st.session_state["current_page"] == "Overview":
         gauge_svg = generate_health_gauge_svg(engine.healthy_rate, engine.failure_rate)
         st.markdown(clean_html(f"""
         <div class="ai-card" style="padding: 18px 20px; text-align: center;">
+          <div style="font-size: 11px; font-weight: 700; color: #71869D; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px;">Dataset Class Distribution</div>
           {gauge_svg}
           <div style="display: flex; justify-content: center; gap: 24px; margin-top: 10px; font-size: 13px; font-weight: 600;">
-            <span style="color: #506D8A;"><span style="color: #506D8A; font-size: 14px;">&#9679;</span> {engine.normal_records:,} Healthy ({engine.healthy_rate:.2f}%)</span>
-            <span style="color: #D95C5C;"><span style="color: #D95C5C; font-size: 14px;">&#9679;</span> {engine.failure_records:,} Failure ({engine.failure_rate:.2f}%)</span>
+            <span style="color: #506D8A;"><span style="color: #506D8A; font-size: 14px;">&#9679;</span> {engine.normal_records:,} Normal Records ({engine.healthy_rate:.2f}%)</span>
+            <span style="color: #D95C5C;"><span style="color: #D95C5C; font-size: 14px;">&#9679;</span> {engine.failure_records:,} Failure Records ({engine.failure_rate:.2f}%)</span>
           </div>
         </div>
         """), unsafe_allow_html=True)
@@ -252,13 +267,13 @@ if st.session_state["current_page"] == "Overview":
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
-            Key Insight
+            Dataset Baseline Insight
           </div>
           <p style="font-size: 14px; color: #2C3E50; line-height: 1.6; margin: 0 0 14px 0;">
-            Most records in the dataset represent normal machine operation, while <strong>{engine.failure_rate:.2f}%</strong> contain a recorded machine failure.
+            Across the 10,000 historical records in the AI4I 2020 dataset, <strong>{engine.healthy_rate:.2f}%</strong> represent verified normal machine operations, while <strong>{engine.failure_rate:.2f}%</strong> contain recorded equipment failures.
           </p>
           <div style="background: #EEF5F8; border-radius: 6px; padding: 12px 14px; font-size: 12.5px; color: #506D8A; line-height: 1.45;">
-            Operational conditions exhibit strong class imbalance typical of industrial production lines. Monitoring parameter combinations enables reliable early-stage prevention.
+            This 96.61% metric reflects the historical dataset class balance rather than the live state of a single machine. Predictive maintenance models are trained on this distribution to distinguish rare failure signals from normal operation.
           </div>
         </div>
         """), unsafe_allow_html=True)
@@ -333,14 +348,38 @@ if st.session_state["current_page"] == "Overview":
 # PAGE 2: PREDICTION
 # -------------------------------------------------------------
 elif st.session_state["current_page"] == "Prediction":
-    st.markdown(clean_html("""
-    <div class="page-header">
-      <div>
-        <h1 class="page-title" style="color: #17263D;">Machine Failure Prediction</h1>
-        <p class="page-subtitle">Given these machine operating conditions, is the machine likely to experience failure?</p>
-      </div>
-    </div>
-    """), unsafe_allow_html=True)
+    p_head_col1, p_head_col2 = st.columns([3.0, 1.4])
+
+    with p_head_col1:
+        st.markdown(clean_html("""
+        <div class="page-header" style="margin-bottom: 0;">
+          <div>
+            <h1 class="page-title" style="color: #17263D;">Machine Failure Prediction</h1>
+            <p class="page-subtitle">Given these machine operating conditions, is the machine likely to experience failure?</p>
+          </div>
+        </div>
+        """), unsafe_allow_html=True)
+
+    with p_head_col2:
+        col_tog, col_test = st.columns([1.8, 1.0])
+        with col_tog:
+            audio_on = st.toggle(
+                "Audio Alerts",
+                value=st.session_state["audio_alerts_enabled"],
+                key="audio_alerts_toggle",
+                help="Toggle audible notifications on Warning and Failure predictions"
+            )
+            st.session_state["audio_alerts_enabled"] = audio_on
+        with col_test:
+            if st.button("Test", key="btn_test_audio", type="secondary", use_container_width=True, help="Test alert sound"):
+                st.session_state["trigger_test_alert"] = True
+                st.rerun()
+
+    # Play test chime if test was triggered and no prediction result handles it
+    if st.session_state.get("trigger_test_alert") and not st.session_state.get("has_prediction"):
+        st.session_state["trigger_test_alert"] = False
+        test_audio_bytes = generate_alert_wav("warning")
+        st.audio(test_audio_bytes, format="audio/wav", autoplay=True)
 
     # SECTION 1: MACHINE INPUT
     st.markdown(clean_html("""
@@ -564,6 +603,7 @@ elif st.session_state["current_page"] == "Prediction":
                 st.session_state["input_tool_wear"]
             )
             st.session_state["has_prediction"] = True
+            st.session_state["prediction_counter"] = st.session_state.get("prediction_counter", 0) + 1
             st.rerun()
 
     st.markdown("</div></div>", unsafe_allow_html=True)
@@ -575,9 +615,6 @@ elif st.session_state["current_page"] == "Prediction":
         status_label = pred_res["prediction_label"]
         fail_prob = pred_res["probability_percent"]
 
-        result_accent = "#D95C5C" if is_fail else "#56806B"
-        result_bg = "#FDEDED" if is_fail else "#EEF5F8"
-
         # Check for specifically elevated parameters to dynamically alert the user
         recs_dict, flagged = generate_dynamic_recommendations(
             pred_res["prediction"],
@@ -587,6 +624,56 @@ elif st.session_state["current_page"] == "Prediction":
             engine.normal_averages,
             pred_res["is_unusual"]
         )
+
+        # Classify operational state: Failure, Warning, or Normal
+        if is_fail:
+            pred_state = "failure"
+        elif pred_res["is_unusual"] or len(flagged) > 0 or fail_prob >= 20.0:
+            pred_state = "warning"
+        else:
+            pred_state = "normal"
+
+        result_accent = "#D95C5C" if is_fail else "#56806B"
+        result_bg = "#FDEDED" if is_fail else "#EEF5F8"
+
+        # Audio alert dispatch logic (one-shot per new prediction or manual test)
+        sound_to_play = None
+        if st.session_state.get("trigger_test_alert"):
+            st.session_state["trigger_test_alert"] = False
+            sound_to_play = "warning"
+        elif st.session_state.get("audio_alerts_enabled", True):
+            curr_counter = st.session_state.get("prediction_counter", 0)
+            if curr_counter > 0 and curr_counter != st.session_state.get("last_played_prediction_counter", 0):
+                st.session_state["last_played_prediction_counter"] = curr_counter
+                if pred_state in ["warning", "failure"]:
+                    sound_to_play = pred_state
+        else:
+            # When alerts disabled, keep counter synchronized so enabling later won't trigger stale alert
+            st.session_state["last_played_prediction_counter"] = st.session_state.get("prediction_counter", 0)
+
+        if sound_to_play:
+            alert_audio_bytes = generate_alert_wav(sound_to_play)
+            st.audio(alert_audio_bytes, format="audio/wav", autoplay=True)
+
+        # Visual indicator badge inside Prediction Result card
+        audio_pill_html = ""
+        if st.session_state.get("audio_alerts_enabled", True):
+            if pred_state == "failure":
+                audio_pill_html = clean_html("""<span class="audio-alert-indicator failure" title="Audible alert dispatched for potential machine failure">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D95C5C" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  Alert Sounded
+                </span>""")
+            elif pred_state == "warning":
+                audio_pill_html = clean_html("""<span class="audio-alert-indicator warning" title="Audible warning chime dispatched for elevated parameters">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D49A3A" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  Warning Chime Sounded
+                </span>""")
+        else:
+            if pred_state in ["warning", "failure"]:
+                audio_pill_html = clean_html("""<span class="audio-alert-indicator muted" title="Audio alerts are muted in header settings">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#71869D" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                  Alert Muted
+                </span>""")
 
         alert_banner_html = ""
         if flagged:
@@ -600,7 +687,10 @@ elif st.session_state["current_page"] == "Prediction":
         <div class="ai-card" style="border-left: 5px solid {result_accent}; padding: 22px 26px; margin-bottom: 22px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <span style="font-size: 11.5px; font-weight: 700; color: #71869D; text-transform: uppercase; letter-spacing: 0.6px;">Prediction Result</span>
+              <div style="display: flex; align-items: center;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #71869D; text-transform: uppercase; letter-spacing: 0.6px;">Prediction Result</span>
+                {audio_pill_html}
+              </div>
               <div style="font-size: 24px; font-weight: 700; color: {result_accent}; margin-top: 3px;">
                 {status_label}
               </div>

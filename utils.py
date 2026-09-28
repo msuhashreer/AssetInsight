@@ -6,6 +6,9 @@ Dual-tier non-overlapping scale ensures Typical (above) and Current (below) neve
 
 import io
 import os
+import wave
+import struct
+import math
 import pandas as pd
 import numpy as np
 import openpyxl
@@ -14,6 +17,44 @@ from openpyxl.utils import get_column_letter
 
 # Ensure matplotlib cache is in a writable location
 os.environ["MPLCONFIGDIR"] = "/tmp/matplotlib"
+
+
+def generate_alert_wav(alert_type: str = "warning") -> bytes:
+    """
+    Generates a pure, subtle industrial alert tone in-memory as WAV audio bytes.
+    - warning: Soft, warm ascending two-tone chime (D5: 587.33 Hz -> A5: 880.0 Hz).
+    - failure: Distinct three-tone alert chime (A5: 880 Hz -> F#5: 740 Hz -> D5: 587.33 Hz).
+    Uses pure Python standard library (wave, struct, math) with zero external dependencies.
+    """
+    sample_rate = 22050
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sample_rate)
+
+        if alert_type == "warning":
+            tones = [(587.33, 0.16, 0.18), (880.0, 0.22, 0.20)]
+        elif alert_type == "failure":
+            tones = [(880.0, 0.14, 0.22), (739.99, 0.14, 0.24), (587.33, 0.28, 0.25)]
+        else:
+            return b""
+
+        frames = bytearray()
+        for freq, duration, vol in tones:
+            num_samples = int(sample_rate * duration)
+            for i in range(num_samples):
+                t = i / sample_rate
+                attack = min(1.0, i / (sample_rate * 0.015))
+                decay = math.exp(-3.8 * (i / num_samples))
+                env = attack * decay
+                val = math.sin(2 * math.pi * freq * t) + 0.18 * math.sin(4 * math.pi * freq * t)
+                sample = int(32767 * vol * env * (val / 1.18))
+                sample = max(-32768, min(32767, sample))
+                frames.extend(struct.pack("<h", sample))
+        w.writeframes(frames)
+    buf.seek(0)
+    return buf.read()
 
 
 def clean_html(html_str: str) -> str:
@@ -29,6 +70,7 @@ def clean_html(html_str: str) -> str:
 def generate_health_gauge_svg(healthy_pct: float = 96.61, failure_pct: float = 3.39) -> str:
     """
     Generates a clean, modern SVG semi-circular arc gauge matching the industrial visual style.
+    Visualizes the historical dataset baseline distribution (normal vs. failure records).
     Healthy: Muted Slate Blue (#506D8A)
     Failure: Muted Red (#D95C5C)
     """
@@ -50,7 +92,7 @@ def generate_health_gauge_svg(healthy_pct: float = 96.61, failure_pct: float = 3
 <path d="M {cx - r} {cy} A {r} {r} 0 0 1 {cx + r} {cy}" fill="none" stroke="{healthy_color}" stroke-width="{stroke_w}" stroke-linecap="round" stroke-dasharray="{healthy_dash:.2f} {total_arc:.2f}" stroke-dashoffset="0" />
 <path d="M {cx - r} {cy} A {r} {r} 0 0 1 {cx + r} {cy}" fill="none" stroke="{failure_color}" stroke-width="{stroke_w}" stroke-linecap="round" stroke-dasharray="{failure_dash:.2f} {total_arc:.2f}" stroke-dashoffset="-{healthy_dash:.2f}" />
 <text x="{cx}" y="{cy - 18}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="28" fill="#17263D">{healthy_pct:.2f}%</text>
-<text x="{cx}" y="{cy + 8}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="13" fill="#71869D">Overall Healthy</text>
+<text x="{cx}" y="{cy + 8}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="12.5" fill="#71869D">Normal Operation Baseline</text>
 </svg>"""
     return clean_html(svg)
 

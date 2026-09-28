@@ -668,5 +668,71 @@ div[data-testid="stDataFrame"] {
     border-radius: 10px !important;
     background: #FFFFFF !important;
 }
+
+/* =======================================================
+   AUDIO ALERT CONTROL & VISUAL INDICATOR
+   ======================================================= */
+/* Invisible container for auto-playing alert audio */
+div[data-testid="stAudio"],
+.stElementContainer:has([data-testid="stAudio"]) {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Audio Alert Toggle in Header */
+div[data-testid="stToggle"] {
+    margin-top: 6px !important;
+}
+
+div[data-testid="stToggle"] label p {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #17263D !important;
+    -webkit-text-fill-color: #17263D !important;
+    letter-spacing: -0.1px !important;
+}
+
+/* Prediction Result Visual Audio Alert Indicator Pill */
+.audio-alert-indicator {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 2.5px 8px !important;
+    border-radius: 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    vertical-align: middle !important;
+    margin-left: 10px !important;
+}
+
+.audio-alert-indicator.warning {
+    color: #D49A3A !important;
+    -webkit-text-fill-color: #D49A3A !important;
+    background: #FFF5E6 !important;
+    border: 1px solid rgba(212, 154, 58, 0.28) !important;
+}
+
+.audio-alert-indicator.failure {
+    color: #D95C5C !important;
+    -webkit-text-fill-color: #D95C5C !important;
+    background: #FDEDED !important;
+    border: 1px solid rgba(217, 92, 92, 0.28) !important;
+}
+
+.audio-alert-indicator.muted {
+    color: #71869D !important;
+    -webkit-text-fill-color: #71869D !important;
+    background: #EEF5F8 !important;
+    border: 1px solid #D8E4EC !important;
+}
 </style>
 """

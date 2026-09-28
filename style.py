@@ -736,7 +736,7 @@ div[data-testid="stToggle"] label p {
 }
 
 /* =======================================================
-   CENTERED ALARM SCREEN DISPLAY & OFF CONTROL
+   ALARM MODAL OVERLAY STYLING (True Pop-up Modal)
    ======================================================= */
 @keyframes alarmPulse {
     0% { transform: scale(1); opacity: 1; }
@@ -755,7 +755,7 @@ div[data-testid="stToggle"] label p {
     width: 200px !important;
     height: 200px !important;
     border-radius: 50% !important;
-    margin: 12px auto 16px auto !important;
+    margin: 0 auto 16px auto !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -778,21 +778,127 @@ div[data-testid="stToggle"] label p {
     box-shadow: 0 0 0 8px rgba(212, 154, 58, 0.16), 0 8px 24px rgba(212, 154, 58, 0.22) !important;
 }
 
-/* Turn Off Button centered down below round card */
-div.turn-off-btn-danger div.stButton > button {
-    background-color: #D95C5C !important;
-    color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-    border: 1px solid #D95C5C !important;
+/* Full screen darkened and blurred backdrop */
+div[data-testid="stDialog"],
+div.stDialog {
+    position: fixed !important;
+    inset: 0 !important;
+    background-color: rgba(15, 23, 42, 0.72) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Block background scrolling when alarm modal is active */
+body:has(div[data-testid="stDialog"]),
+html:has(div[data-testid="stDialog"]),
+div[data-testid="stAppViewContainer"]:has(div[data-testid="stDialog"]),
+body:has(div.stDialog),
+html:has(div.stDialog),
+div[data-testid="stAppViewContainer"]:has(div.stDialog) {
+    overflow: hidden !important;
+}
+
+/* Hide Streamlit default dialog header, title, and close button */
+div[data-testid="stDialog"] [slot="title"],
+div.stDialog [slot="title"],
+div[data-testid="stDialog"] button[aria-label="Close"],
+div.stDialog button[aria-label="Close"],
+div[data-testid="stDialog"] [data-testid="stDialogHeader"],
+div.stDialog [data-testid="stDialogHeader"],
+div[data-testid="stDialog"] h2,
+div.stDialog h2 {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Hide native HTML audio player widget inside dialog */
+div[data-testid="stDialog"] audio,
+div.stDialog audio,
+div[data-testid="stDialog"] [data-testid="stAudio"],
+div.stDialog [data-testid="stAudio"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Modal Dialog Box: clean, elegant white container centered on screen */
+div[data-testid="stDialog"] > div,
+div.stDialog > div {
+    background: #FFFFFF !important;
+    border-radius: 18px !important;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45) !important;
+    border: 1px solid rgba(220, 230, 240, 0.9) !important;
+    max-width: 320px !important;
+    width: 320px !important;
+    padding: 24px 20px 22px 20px !important;
+    margin: auto !important;
+    outline: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+}
+
+/* Remove default vertical block gap inside modal */
+div[data-testid="stDialog"] div[data-testid="stVerticalBlock"],
+div.stDialog div[data-testid="stVerticalBlock"] {
+    gap: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+/* Turn Off Button inside modal */
+div[data-testid="stDialog"] div.stButton,
+div.stDialog div.stButton,
+div.turn-off-btn-danger div.stButton,
+div.turn-off-btn-warning div.stButton {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+div[data-testid="stDialog"] div.stButton > button,
+div.stDialog div.stButton > button,
+div.turn-off-btn-danger div.stButton > button,
+div.turn-off-btn-warning div.stButton > button {
     font-weight: 700 !important;
     font-size: 14.5px !important;
     padding: 10px 28px !important;
     border-radius: 8px !important;
     letter-spacing: 0.3px !important;
-    box-shadow: 0 4px 14px rgba(217, 92, 92, 0.35) !important;
     transition: all 0.2s ease !important;
+    width: 200px !important;
+    margin: 0 auto !important;
 }
 
+/* Danger Turn Off Button */
+div[data-testid="stDialog"]:has(.alarm-round-card.danger) div.stButton > button,
+div.stDialog:has(.alarm-round-card.danger) div.stButton > button,
+div.turn-off-btn-danger div.stButton > button {
+    background-color: #D95C5C !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    border: 1px solid #D95C5C !important;
+    box-shadow: 0 4px 14px rgba(217, 92, 92, 0.35) !important;
+}
+
+div[data-testid="stDialog"]:has(.alarm-round-card.danger) div.stButton > button:hover,
+div.stDialog:has(.alarm-round-card.danger) div.stButton > button:hover,
 div.turn-off-btn-danger div.stButton > button:hover {
     background-color: #C04545 !important;
     border-color: #C04545 !important;
@@ -800,20 +906,19 @@ div.turn-off-btn-danger div.stButton > button:hover {
     transform: translateY(-1px) !important;
 }
 
+/* Warning Turn Off Button */
+div[data-testid="stDialog"]:has(.alarm-round-card.warning) div.stButton > button,
+div.stDialog:has(.alarm-round-card.warning) div.stButton > button,
 div.turn-off-btn-warning div.stButton > button {
     background-color: #D49A3A !important;
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
     border: 1px solid #D49A3A !important;
-    font-weight: 700 !important;
-    font-size: 14.5px !important;
-    padding: 10px 28px !important;
-    border-radius: 8px !important;
-    letter-spacing: 0.3px !important;
     box-shadow: 0 4px 14px rgba(212, 154, 58, 0.35) !important;
-    transition: all 0.2s ease !important;
 }
 
+div[data-testid="stDialog"]:has(.alarm-round-card.warning) div.stButton > button:hover,
+div.stDialog:has(.alarm-round-card.warning) div.stButton > button:hover,
 div.turn-off-btn-warning div.stButton > button:hover {
     background-color: #BA842E !important;
     border-color: #BA842E !important;

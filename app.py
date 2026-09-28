@@ -209,8 +209,64 @@ if "alarm_silenced" not in st.session_state:
     st.session_state["alarm_silenced"] = False
 
 
-
 # -------------------------------------------------------------
+# ALARM MODAL DIALOG DEFINITION (True Pop-up Overlay)
+# -------------------------------------------------------------
+if hasattr(st, "dialog"):
+    alarm_dialog = st.dialog("Machine Operating Alert", width="small", dismissible=False)
+elif hasattr(st, "experimental_dialog"):
+    alarm_dialog = st.experimental_dialog("Machine Operating Alert")
+else:
+    alarm_dialog = lambda f: f
+
+
+@alarm_dialog
+def render_alarm_modal(pred_state: str, fail_prob: float):
+    """
+    True Pop-up Modal Overlay for Warning and Danger Alarms.
+    Appears centered on top of the Prediction page with background dimmed and locked.
+    Repeats subtle audible alert continuously until Turn Off is pressed.
+    """
+    # Looping continuous audio alert inside modal
+    if st.session_state.get("audio_alerts_enabled", True):
+        alert_audio_bytes = generate_alert_wav(pred_state)
+        st.audio(alert_audio_bytes, format="audio/wav", loop=True, autoplay=True)
+
+    badge_color = "#D95C5C" if pred_state == "danger" else "#D49A3A"
+    headline = "DANGER ALARM" if pred_state == "danger" else "WARNING ALARM"
+    status_desc = f"{fail_prob:.1f}% Failure Risk" if pred_state == "danger" else "Elevated Conditions"
+
+    # Centered circular round alarm card (exact styling maintained)
+    st.markdown(clean_html(f"""
+    <div style="text-align: center; margin: 0 auto 16px auto;">
+      <div class="alarm-round-card {pred_state}">
+        <span class="alarm-pulse-icon">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="{badge_color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            <path d="M2 8C2 6.5 2.6 5.1 3.7 4"></path>
+            <path d="M22 8c0-1.5-.6-2.9-1.7-4"></path>
+          </svg>
+        </span>
+        <div style="font-size: 13px; font-weight: 800; color: {badge_color}; letter-spacing: 0.8px; margin-top: 8px; text-transform: uppercase;">
+          {headline}
+        </div>
+        <div style="font-size: 11.5px; font-weight: 600; color: #506D8A; margin-top: 2px;">
+          {status_desc}
+        </div>
+      </div>
+    </div>
+    """), unsafe_allow_html=True)
+
+    # Centered Turn Off button directly beneath round card
+    btn_wrap = "turn-off-btn-danger" if pred_state == "danger" else "turn-off-btn-warning"
+    st.markdown(f'<div class="{btn_wrap}">', unsafe_allow_html=True)
+    if st.button("Turn Off", key="btn_modal_turn_off", type="primary", use_container_width=True, help="Turn off the audible alarm and dismiss overlay"):
+        st.session_state["alarm_silenced"] = True
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
 # GLOBAL FIXED SIDEBAR (Strictly NO EMOJIS, pure professional typography)
 # -------------------------------------------------------------
 with st.sidebar:
@@ -697,56 +753,6 @@ elif st.session_state["current_page"] == "Prediction":
         result_accent = "#D95C5C" if is_fail else "#56806B"
         result_bg = "#FDEDED" if is_fail else "#EEF5F8"
 
-        # Continuous Alarm State evaluation
-        alarm_should_ring = False
-        if st.session_state.get("audio_alerts_enabled", True) and pred_state in ["danger", "warning"]:
-            if not st.session_state.get("alarm_silenced", False):
-                alarm_should_ring = True
-
-        # Render looping continuous audio if alarm is actively sounding
-        if alarm_should_ring:
-            alert_audio_bytes = generate_alert_wav(pred_state)
-            st.audio(alert_audio_bytes, format="audio/wav", loop=True, autoplay=True)
-
-        # -------------------------------------------------------------
-        # ROUND ALARM CARD DISPLAY (Appears on Warning/Danger until Turn Off is pressed)
-        # -------------------------------------------------------------
-        if pred_state in ["danger", "warning"] and alarm_should_ring:
-            badge_color = "#D95C5C" if pred_state == "danger" else "#D49A3A"
-            headline = "DANGER ALARM" if pred_state == "danger" else "WARNING ALARM"
-            status_desc = f"{fail_prob:.1f}% Failure Risk" if pred_state == "danger" else "Elevated Conditions"
-
-            st.markdown(clean_html(f"""
-            <div style="text-align: center; margin: 8px 0 12px 0;">
-              <div class="alarm-round-card {pred_state}">
-                <span class="alarm-pulse-icon">
-                  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="{badge_color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    <path d="M2 8C2 6.5 2.6 5.1 3.7 4"></path>
-                    <path d="M22 8c0-1.5-.6-2.9-1.7-4"></path>
-                  </svg>
-                </span>
-                <div style="font-size: 13px; font-weight: 800; color: {badge_color}; letter-spacing: 0.8px; margin-top: 8px; text-transform: uppercase;">
-                  {headline}
-                </div>
-                <div style="font-size: 11.5px; font-weight: 600; color: #506D8A; margin-top: 2px;">
-                  {status_desc}
-                </div>
-              </div>
-            </div>
-            """), unsafe_allow_html=True)
-
-            # Centered Turn Off button directly down below the round card
-            btn_wrap = "turn-off-btn-danger" if pred_state == "danger" else "turn-off-btn-warning"
-            _, col_off_btn, _ = st.columns([1.6, 1.2, 1.6])
-            with col_off_btn:
-                st.markdown(f'<div class="{btn_wrap}" style="margin-top: -6px; margin-bottom: 24px;">', unsafe_allow_html=True)
-                if st.button("Turn Off", key="btn_turn_off_alarm", type="primary", use_container_width=True, help="Turn off the audible alarm"):
-                    st.session_state["alarm_silenced"] = True
-                    st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
         alert_banner_html = ""
         if flagged:
             flagged_str = " and ".join(flagged)
@@ -821,6 +827,12 @@ elif st.session_state["current_page"] == "Prediction":
           </div>
         </div>
         """), unsafe_allow_html=True)
+
+        # -------------------------------------------------------------
+        # ALARM MODAL OVERLAY TRIGGER (True Pop-up Modal on Warning/Danger)
+        # -------------------------------------------------------------
+        if pred_state in ["danger", "warning"] and not st.session_state.get("alarm_silenced", False):
+            render_alarm_modal(pred_state, fail_prob)
 
     else:
         st.markdown(clean_html("""
